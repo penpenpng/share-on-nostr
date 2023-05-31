@@ -3,7 +3,7 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
   name: 'share-on-nostr',
   description: 'Share URL of active tab on Nostr',
-  version: '0.1.0',
+  version: '0.1.2',
   manifest_version: 3,
   icons: {
     '16': 'img/logo-16.png',
@@ -19,12 +19,6 @@ export default defineManifest({
     service_worker: 'src/background.ts',
     type: 'module',
   },
-  content_scripts: [
-    {
-      matches: ['http://*/*', 'https://*/*'],
-      js: ['src/content.ts'],
-    },
-  ],
   web_accessible_resources: [
     {
       resources: ['img/logo-16.png', 'img/logo-34.png', 'img/logo-48.png', 'img/logo-128.png'],
@@ -35,5 +29,5 @@ export default defineManifest({
       matches: ['https://*/*', 'http://localhost:*/*'],
     },
   ],
-  permissions: ['tabs', 'activeTab'],
+  permissions: ['activeTab', 'scripting'],
 });

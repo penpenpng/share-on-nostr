@@ -1,6 +1,6 @@
 {
   "name": "share-on-nostr",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "penpenpng",
   "description": "Share URL of active tab on Nostr",
   "type": "module",
