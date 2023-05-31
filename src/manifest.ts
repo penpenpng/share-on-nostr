@@ -35,5 +35,5 @@ export default defineManifest({
       matches: ['https://*/*', 'http://localhost:*/*'],
     },
   ],
-  permissions: ['storage', 'tabs', 'activeTab'],
+  permissions: ['tabs', 'activeTab'],
 });
