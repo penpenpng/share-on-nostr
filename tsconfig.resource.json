@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src/resource",
+    "outDir": "./public/js",
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "Node",
+    "strict": true,
+    "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types", "./src/@types"]
+  },
+  "include": ["src/resource/*"]
+}

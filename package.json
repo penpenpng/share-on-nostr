@@ -1,0 +1,41 @@
+{
+  "name": "share-on-nostr",
+  "version": "0.1.0",
+  "author": "penpenpng",
+  "description": "Share URL of active tab on Nostr",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "chrome-extension",
+    "nostr"
+  ],
+  "engines": {
+    "node": ">=14.18.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.resource.json && vite build",
+    "build:resource": "tsc -p tsconfig.resource.json",
+    "fmt": "prettier --write '**/*.{svelte,ts,json,css,scss,md}'"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^1.0.12",
+    "@sveltejs/vite-plugin-svelte": "1.0.0-next.49",
+    "@types/chrome": "^0.0.193",
+    "@types/w3c-web-hid": "^1.0.3",
+    "prettier": "^2.7.1",
+    "prettier-plugin-svelte": "^2.7.0",
+    "svelte": "^3.44.0",
+    "svelte-preprocess": "^4.9.8",
+    "tslib": "^2.3.1",
+    "typescript": "^4.5.4",
+    "vite": "^2.9.13"
+  },
+  "dependencies": {
+    "@noble/hashes": "1.0.0",
+    "@noble/secp256k1": "^1.7.1",
+    "bech32": "^2.0.0",
+    "material-icons": "^1.13.4",
+    "svelte-material-ui": "^7.0.0-beta.3"
+  }
+}
