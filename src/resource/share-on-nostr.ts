@@ -69,13 +69,6 @@ async function shareOnNostr(message: string) {
   }
 }
 
-interface Window {
-  nostr?: {
-    signEvent(event: UnsignedEvent): Promise<SignedEvent>;
-    getRelays(): Promise<{ [url: string]: { read: boolean; write: boolean } }>;
-  };
-}
-
 interface UnsignedEvent {
   kind: number;
   tags: string[][];
