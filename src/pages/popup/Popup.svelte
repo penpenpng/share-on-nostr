@@ -19,6 +19,11 @@
     chrome.scripting.executeScript({
       target: { tabId },
       func: () => {
+        if ((window as any).__share_on_nostr__loaded) {
+          return;
+        }
+        (window as any).__share_on_nostr__loaded = true;
+
         injectResourceScript('js/share-on-nostr.js');
 
         window.addEventListener('message', async ({ data }: MessageEvent<Packet>) => {
