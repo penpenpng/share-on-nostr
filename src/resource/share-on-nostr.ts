@@ -4,11 +4,11 @@ window.addEventListener('message', async ({ data }: MessageEvent<Packet>) => {
   }
 
   if (data.kind === 'share') {
-    shareOnNostr(data.text);
+    shareOnNostr(data.text, data.url);
   }
 });
 
-async function shareOnNostr(message: string) {
+async function shareOnNostr(message: string, url: string) {
   const nostr = window.nostr;
   if (!nostr) {
     console.warn('NIP-07 interface is not found.');
@@ -35,7 +35,7 @@ async function shareOnNostr(message: string) {
     'EVENT',
     await nostr.signEvent({
       kind: 1,
-      tags: [],
+      tags: [['r', url]],
       content: message,
       created_at: Math.floor(new Date().getTime() / 1000),
     }),

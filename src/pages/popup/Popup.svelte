@@ -7,19 +7,21 @@
 
   let note = '';
   let tabId = 0;
+  let tabUrl = '';
   let sent = false;
-  let urls: string[] | null = null;
+  let relayUrls: string[] | null = null;
   let result: Record<string, 'processing' | 'success' | 'failure'> = {};
-  $: noRelay = urls !== null && urls.length <= 0;
-  $: state = urls?.map((url) => ({ url, result: result[url] })) ?? [];
+  $: noRelay = relayUrls !== null && relayUrls.length <= 0;
+  $: state = relayUrls?.map((url) => ({ url, result: result[url] })) ?? [];
 
   let loading = connectToActiveTab().then(async (tab) => {
     const template = await load('noteTemplate', 'v1');
     note = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');
     tabId = tab.tabId;
+    tabUrl = tab.url;
   });
   onReceivedRelays((relays) => {
-    urls = relays;
+    relayUrls = relays;
   });
   onReceivedPostResult(({ url, success }) => {
     result = { ...result, [url]: success ? 'success' : 'failure' };
@@ -31,6 +33,7 @@
       kind: 'share',
       tabId,
       text: note,
+      url: tabUrl,
     };
     chrome.runtime.sendMessage(packet);
     sent = true;
