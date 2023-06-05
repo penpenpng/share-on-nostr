@@ -1,18 +1,17 @@
 <script lang="ts">
   import Button, { Label as ButtonLabel } from '@smui/button';
   import Textfield from '@smui/textfield';
-  import CircularProgress from '@smui/circular-progress';
+  import Lazy from '../../lib/Lazy.svelte';
 
   let value = '';
   let tabId = 0;
   let sent = false;
   let urls: string[] | null = null;
   let result: Record<string, 'processing' | 'success' | 'failure'> = {};
-  $: loading = tabId === 0;
   $: noRelay = urls !== null && urls.length <= 0;
   $: state = urls?.map((url) => ({ url, result: result[url] })) ?? [];
 
-  chrome.tabs.query({ active: true, lastFocusedWindow: true }).then(([tab]) => {
+  let loading = chrome.tabs.query({ active: true, lastFocusedWindow: true }).then(([tab]) => {
     value = `${tab.title} ${tab.url}`;
     tabId = tab.id ?? 0;
     chrome.scripting.executeScript({
@@ -81,9 +80,7 @@
 </script>
 
 <main>
-  {#if loading}
-    <CircularProgress style="height: 32px; width: 32px;" indeterminate />
-  {:else}
+  <Lazy promise={loading}>
     <Textfield
       textarea
       bind:value
@@ -119,7 +116,7 @@
         {/if}
       </div>
     {/if}
-  {/if}
+  </Lazy>
 </main>
 
 <style>
