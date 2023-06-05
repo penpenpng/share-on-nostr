@@ -11,5 +11,7 @@
     <CircularProgress style={`height: ${size}px; width: ${size}px;`} indeterminate />
   {:then resolved}
     <slot {resolved} />
+  {:catch error}
+    <slot name="error" {error} />
   {/await}
 </main>
