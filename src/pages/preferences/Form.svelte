@@ -62,14 +62,15 @@
   <Textfield
     bind:value={$nsec}
     disabled={$postMethod !== NostrPostMethods.nsec}
-    invalid={!!$errors.intentUrl}
+    invalid={!!$errors.nsec}
     variant="outlined"
     label="nsec1... or hex"
+    type="password"
     style="width: 100%;"
   >
     <HelperText slot="helper" validationMsg={true}>{$errors.nsec}</HelperText>
   </Textfield>
-  <Caption>{'Each line must start with wss://... and be a valid relay URL.'}</Caption>
+  <Caption>{'Each line is to be a relay URL.'}</Caption>
   <Textfield
     textarea
     bind:value={$relayUrls}
