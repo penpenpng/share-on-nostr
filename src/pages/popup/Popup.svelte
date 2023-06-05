@@ -3,8 +3,9 @@
   import Textfield from '@smui/textfield';
   import Lazy from '../../lib/Lazy.svelte';
   import { load } from '../../lib/store';
+  import { connectToActiveTab, onReceivedPostResult, onReceivedRelays } from './connection';
 
-  let value = '';
+  let note = '';
   let tabId = 0;
   let sent = false;
   let urls: string[] | null = null;
@@ -12,61 +13,16 @@
   $: noRelay = urls !== null && urls.length <= 0;
   $: state = urls?.map((url) => ({ url, result: result[url] })) ?? [];
 
-  let loading = chrome.tabs.query({ active: true, lastFocusedWindow: true }).then(async ([tab]) => {
+  let loading = connectToActiveTab().then(async (tab) => {
     const template = await load('noteTemplate', 'v1');
-    value = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');
-    tabId = tab.id ?? 0;
-    chrome.scripting.executeScript({
-      target: { tabId },
-      func: () => {
-        if ((window as any).__share_on_nostr__loaded) {
-          return;
-        }
-        (window as any).__share_on_nostr__loaded = true;
-
-        injectResourceScript('js/share-on-nostr.js');
-
-        window.addEventListener('message', async ({ data }: MessageEvent<Packet>) => {
-          if (data.ext !== 'share-on-nostr') {
-            return;
-          }
-
-          if (data.kind === 'relays' || data.kind === 'result') {
-            chrome.runtime.sendMessage(data);
-          }
-        });
-
-        chrome.runtime.onMessage.addListener((packet: Packet) => {
-          if (packet.ext !== 'share-on-nostr') {
-            return;
-          }
-
-          if (packet.kind === 'share') {
-            window.postMessage(packet);
-          }
-        });
-
-        function injectResourceScript(path: string) {
-          const script = document.createElement('script');
-          script.setAttribute('async', 'false');
-          script.setAttribute('type', 'text/javascript');
-          script.setAttribute('src', chrome.runtime.getURL(path));
-          document.head.appendChild(script);
-        }
-      },
-    });
+    note = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');
+    tabId = tab.tabId;
   });
-  chrome.runtime.onMessage.addListener((packet: Packet) => {
-    if (packet.ext !== 'share-on-nostr') {
-      return;
-    }
-
-    if (packet.kind === 'relays') {
-      urls = packet.relays;
-    }
-    if (packet.kind === 'result') {
-      result = { ...result, [packet.url]: packet.success ? 'success' : 'failure' };
-    }
+  onReceivedRelays((relays) => {
+    urls = relays;
+  });
+  onReceivedPostResult(({ url, success }) => {
+    result = { ...result, [url]: success ? 'success' : 'failure' };
   });
 
   const shareOnNostr = () => {
@@ -74,7 +30,7 @@
       ext: 'share-on-nostr',
       kind: 'share',
       tabId,
-      text: value,
+      text: note,
     };
     chrome.runtime.sendMessage(packet);
     sent = true;
@@ -90,7 +46,7 @@
   <Lazy promise={loading}>
     <Textfield
       textarea
-      bind:value
+      bind:value={note}
       disabled={sent}
       label="Share on Nostr"
       style="width: 100%; resize: vertical;"
@@ -98,7 +54,7 @@
     />
     <Button
       variant="raised"
-      disabled={sent || value.length <= 0}
+      disabled={sent || note.length <= 0}
       style="margin-top: 5px; width: 100%;"
       on:click={shareOnNostr}
     >
