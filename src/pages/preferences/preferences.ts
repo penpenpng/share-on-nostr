@@ -1,14 +1,6 @@
 import { writable, get } from 'svelte/store';
+import { loadPreference, savePreference, type NostrPostMethod } from '../../lib/store';
 
-export interface ShareOnNostrPreference {
-  postMethod: NostrPostMethod;
-  nsec: string;
-  relayUrls: string;
-  intentUrl: string;
-  noteTemplate: string;
-  enableContextMenu: boolean;
-}
-export type NostrPostMethod = 'nip07' | 'nsec' | 'externalApp';
 export const NostrPostMethods: Record<NostrPostMethod, NostrPostMethod> = {
   nip07: 'nip07',
   nsec: 'nsec',
@@ -17,7 +9,6 @@ export const NostrPostMethods: Record<NostrPostMethod, NostrPostMethod> = {
 
 export function preferences() {
   // TODO: load
-
   const postMethod = writable<NostrPostMethod>('nip07');
   const nsec = writable('');
   const relayUrls = writable('');
