@@ -2,6 +2,7 @@
   import Button, { Label as ButtonLabel } from '@smui/button';
   import Textfield from '@smui/textfield';
   import Lazy from '../../lib/Lazy.svelte';
+  import { load } from '../../lib/store';
 
   let value = '';
   let tabId = 0;
@@ -11,8 +12,9 @@
   $: noRelay = urls !== null && urls.length <= 0;
   $: state = urls?.map((url) => ({ url, result: result[url] })) ?? [];
 
-  let loading = chrome.tabs.query({ active: true, lastFocusedWindow: true }).then(([tab]) => {
-    value = `${tab.title} ${tab.url}`;
+  let loading = chrome.tabs.query({ active: true, lastFocusedWindow: true }).then(async ([tab]) => {
+    const template = await load('noteTemplate', 'v1');
+    value = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');
     tabId = tab.id ?? 0;
     chrome.scripting.executeScript({
       target: { tabId },
