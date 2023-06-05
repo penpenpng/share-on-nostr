@@ -7,7 +7,7 @@
 </script>
 
 <main>
-  <h2>Preference</h2>
+  <h2>Preferences</h2>
 
   <Lazy promise={loading} let:resolved={pref}>
     <Form {pref} />

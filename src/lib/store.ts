@@ -1,4 +1,4 @@
-export interface ShareOnNostrPreference {
+export interface ShareOnNostrPreferences {
   postMethod: NostrPostMethod;
   nsec: string;
   npub: string;
@@ -9,7 +9,7 @@ export interface ShareOnNostrPreference {
 }
 export type NostrPostMethod = 'nip07' | 'nsec' | 'externalApp';
 
-export async function savePreference(pref: ShareOnNostrPreference) {
+export async function savePreferences(pref: ShareOnNostrPreferences) {
   await Promise.all([
     save('postMethod', 'v1', pref.postMethod),
     save('nsec', 'v1', pref.nsec),
@@ -61,6 +61,10 @@ export async function load<K extends keyof AppStorage>(
   } catch {
     return defaultValues[key];
   }
+}
+
+export function getDefault<K extends keyof AppStorage>(key: K): AppStoredData<K> {
+  return defaultValues[key];
 }
 
 async function save<K extends keyof AppStorage>(

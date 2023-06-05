@@ -22,8 +22,8 @@
     save,
   } = pref;
 
-  function tryToSave() {
-    const result = save();
+  async function tryToSave() {
+    const result = await save();
 
     switch (result) {
       case 'success':
@@ -44,13 +44,10 @@
 <Textfield
   textarea
   bind:value={$noteTemplate}
-  invalid={!!$errors.noteTemplate}
   variant="outlined"
   style="display: block; width: 100%;"
->
-  <HelperText slot="helper" validationMsg={true}>{$errors.noteTemplate}</HelperText>
-</Textfield>
-<Button variant="outlined" on:click={useDefaultNoteTemplate}>
+/>
+<Button on:click={useDefaultNoteTemplate} variant="outlined" style="margin-top: 0.75em;">
   <ButtonLabel>Use Default</ButtonLabel>
 </Button>
 
@@ -88,7 +85,7 @@
 <RadioGrid>
   <Radio slot="radio" bind:group={$postMethod} value={NostrPostMethods.externalApp} />
   <span slot="label">Post using an external web client.</span>
-  <Caption>{'{text} can be used as a placeholder.'}</Caption>
+  <Caption>{'{text} must be included as a placeholder.'}</Caption>
   <Textfield
     bind:value={$intentUrl}
     disabled={$postMethod !== NostrPostMethods.externalApp}
