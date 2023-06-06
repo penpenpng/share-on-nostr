@@ -18,14 +18,14 @@ async function resetContextMenu() {
 
   const enableContextMenu = await chrome.storage.local
     .get('enableContextMenu')
-    .then(({ enableContextMenu }) => enableContextMenu[1]);
+    .then(({ enableContextMenu }) => enableContextMenu?.[1]);
   if (!enableContextMenu) {
     return;
   }
 
   const postMethod = await chrome.storage.local
     .get('postMethod')
-    .then(({ postMethod }) => postMethod[1]);
+    .then(({ postMethod }) => postMethod?.[1]);
   if (postMethod === 'nsec' || postMethod === 'externalApp') {
     chrome.contextMenus.create({
       id: contextMenuId,
