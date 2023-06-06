@@ -54,7 +54,9 @@
 <h3>Post Method</h3>
 <RadioGrid>
   <Radio slot="radio" bind:group={$postMethod} value={NostrPostMethods.nip07} />
-  <span slot="label">Post with NIP-07. (Require another extension implementing NIP-07.)</span>
+  <span slot="label"
+    >Post with NIP-07. (Require another NIP-07 extension supporting getRelays().)</span
+  >
 </RadioGrid>
 <RadioGrid>
   <Radio slot="radio" bind:group={$postMethod} value={NostrPostMethods.nsec} />

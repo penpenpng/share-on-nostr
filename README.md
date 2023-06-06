@@ -8,12 +8,12 @@ Download the latest build.zip from [releases](https://github.com/penpenpng/share
 
 Chrome web store version is under review.
 
-## Requirement
-
-NIP-07 Extension implementing `getRelays()`.
-
 ## Usage
 
-Click the icon of this extension to open the popup.
+Click the icon of this extension to share the page on Nostr.
 
-![screenshot](./screenshot.png)
+![screenshot](./screenshots/popup.png)
+
+Right click the icon to open preferences page.
+
+![screenshot](./screenshots/preferences.png)
