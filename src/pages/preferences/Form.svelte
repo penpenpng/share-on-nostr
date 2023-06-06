@@ -70,7 +70,7 @@
   >
     <HelperText slot="helper" validationMsg={true}>{$errors.nsec}</HelperText>
   </Textfield>
-  <Caption>{'Each line is to be a relay URL.'}</Caption>
+  <Caption>Each line is to be a relay URL.</Caption>
   <Textfield
     textarea
     bind:value={$relayUrls}
@@ -86,7 +86,7 @@
 <RadioGrid>
   <Radio slot="radio" bind:group={$postMethod} value={NostrPostMethods.externalApp} />
   <span slot="label">Post using an external web client.</span>
-  <Caption>{'{text} must be included as a placeholder.'}</Caption>
+  <Caption>{'Placeholder {text} is required. Optional {url} can be used too.'}</Caption>
   <Textfield
     bind:value={$intentUrl}
     disabled={$postMethod !== NostrPostMethods.externalApp}

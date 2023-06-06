@@ -14,28 +14,34 @@
   $: noRelay = relayUrls !== null && relayUrls.length <= 0;
   $: state = relayUrls?.map((url) => ({ url, result: result[url] })) ?? [];
 
-  let loading = connectToActiveTab().then(async (tab) => {
-    const template = await load('noteTemplate', 'v1');
-    note = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');
-    tabId = tab.tabId;
-    tabUrl = tab.url;
-  });
-  onReceivedRelays((relays) => {
-    relayUrls = relays;
-  });
-  onReceivedPostResult(({ url, success }) => {
-    result = { ...result, [url]: success ? 'success' : 'failure' };
-  });
+  let loading = setup();
 
-  const shareOnNostr = () => {
-    const packet: Packet = {
-      ext: 'share-on-nostr',
-      kind: 'share',
-      tabId,
-      text: note,
-      url: tabUrl,
-    };
-    chrome.runtime.sendMessage(packet);
+  const shareOnNostr = async () => {
+    const postMethod = await load('postMethod', 'v1');
+    switch (postMethod) {
+      case 'nip07':
+        {
+          const packet: Packet = {
+            ext: 'share-on-nostr',
+            kind: 'share',
+            tabId,
+            text: note,
+            url: tabUrl,
+          };
+          chrome.runtime.sendMessage(packet);
+        }
+        break;
+      case 'externalApp': {
+        const intentUrl = await load('intentUrl', 'v1');
+
+        chrome.tabs.create({
+          url: intentUrl
+            .replace('{text}', encodeURIComponent(note))
+            .replace('{url}', encodeURIComponent(tabUrl)),
+          active: true,
+        });
+      }
+    }
     sent = true;
   };
   const onKeydown = (ev: KeyboardEvent) => {
@@ -43,6 +49,26 @@
       shareOnNostr();
     }
   };
+
+  async function setup() {
+    const postMethod = await load('postMethod', 'v1');
+
+    if (postMethod === 'nip07') {
+      onReceivedRelays((relays) => {
+        relayUrls = relays;
+      });
+      onReceivedPostResult(({ url, success }) => {
+        result = { ...result, [url]: success ? 'success' : 'failure' };
+      });
+    }
+
+    await connectToActiveTab({ inject: postMethod === 'nip07' }).then(async (tab) => {
+      const template = await load('noteTemplate', 'v1');
+      note = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');
+      tabId = tab.tabId;
+      tabUrl = tab.url;
+    });
+  }
 </script>
 
 <main>
