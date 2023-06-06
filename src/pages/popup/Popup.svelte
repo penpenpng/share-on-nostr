@@ -5,6 +5,7 @@
   import { load } from '../../lib/store';
   import { connectToActiveTab } from './connection';
   import { share, onReceivedPostResult, onReceivedRelays } from './share';
+  import { tick } from 'svelte';
 
   let note = '';
   let tabId = 0;
@@ -16,6 +17,10 @@
   $: state = relayUrls?.map((url) => ({ url, result: result[url] })) ?? [];
 
   let loading = setup();
+  loading.then(async () => {
+    await tick();
+    document.querySelector('textarea')?.focus();
+  });
 
   const shareOnNostr = async () => {
     await share({
