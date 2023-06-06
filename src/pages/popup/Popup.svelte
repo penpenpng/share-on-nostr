@@ -3,7 +3,8 @@
   import Textfield from '@smui/textfield';
   import Lazy from '../../lib/Lazy.svelte';
   import { load } from '../../lib/store';
-  import { connectToActiveTab, onReceivedPostResult, onReceivedRelays } from './connection';
+  import { connectToActiveTab } from './connection';
+  import { share, onReceivedPostResult, onReceivedRelays } from './share';
 
   let note = '';
   let tabId = 0;
@@ -17,31 +18,11 @@
   let loading = setup();
 
   const shareOnNostr = async () => {
-    const postMethod = await load('postMethod', 'v1');
-    switch (postMethod) {
-      case 'nip07':
-        {
-          const packet: Packet = {
-            ext: 'share-on-nostr',
-            kind: 'share',
-            tabId,
-            text: note,
-            url: tabUrl,
-          };
-          chrome.runtime.sendMessage(packet);
-        }
-        break;
-      case 'externalApp': {
-        const intentUrl = await load('intentUrl', 'v1');
-
-        chrome.tabs.create({
-          url: intentUrl
-            .replace('{text}', encodeURIComponent(note))
-            .replace('{url}', encodeURIComponent(tabUrl)),
-          active: true,
-        });
-      }
-    }
+    await share({
+      tabId,
+      text: note,
+      url: tabUrl,
+    });
     sent = true;
   };
   const onKeydown = (ev: KeyboardEvent) => {
@@ -51,17 +32,14 @@
   };
 
   async function setup() {
+    await onReceivedRelays((relays) => {
+      relayUrls = relays;
+    });
+    await onReceivedPostResult(({ url, success }) => {
+      result = { ...result, [url]: success ? 'success' : 'failure' };
+    });
+
     const postMethod = await load('postMethod', 'v1');
-
-    if (postMethod === 'nip07') {
-      onReceivedRelays((relays) => {
-        relayUrls = relays;
-      });
-      onReceivedPostResult(({ url, success }) => {
-        result = { ...result, [url]: success ? 'success' : 'failure' };
-      });
-    }
-
     await connectToActiveTab({ inject: postMethod === 'nip07' }).then(async (tab) => {
       const template = await load('noteTemplate', 'v1');
       note = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');

@@ -59,29 +59,3 @@ export async function connectToActiveTab(params: { inject: boolean }): Promise<{
     url,
   };
 }
-
-export function onReceivedRelays(callback: (relays: string[]) => void) {
-  chrome.runtime.onMessage.addListener((packet: Packet) => {
-    if (packet.ext !== 'share-on-nostr') {
-      return;
-    }
-
-    if (packet.kind === 'relays') {
-      callback(packet.relays);
-    }
-  });
-}
-
-export function onReceivedPostResult(
-  callback: (result: { url: string; success: boolean }) => void,
-) {
-  chrome.runtime.onMessage.addListener((packet: Packet) => {
-    if (packet.ext !== 'share-on-nostr') {
-      return;
-    }
-
-    if (packet.kind === 'result') {
-      callback(packet);
-    }
-  });
-}
