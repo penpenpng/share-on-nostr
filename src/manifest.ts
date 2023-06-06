@@ -3,7 +3,7 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
   name: 'share-on-nostr',
   description: 'Share URL of active tab on Nostr',
-  version: '0.3.0',
+  version: '0.3.1',
   manifest_version: 3,
   icons: {
     '16': 'img/logo-16.png',
