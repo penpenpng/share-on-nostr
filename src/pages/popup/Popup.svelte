@@ -17,10 +17,6 @@
   $: state = relayUrls?.map((url) => ({ url, result: result[url] })) ?? [];
 
   let loading = setup();
-  loading.then(async () => {
-    await tick();
-    document.querySelector('textarea')?.focus();
-  });
 
   const shareOnNostr = async () => {
     await share({
@@ -45,12 +41,20 @@
     });
 
     const postMethod = await load('postMethod', 'v1');
-    await connectToActiveTab({ inject: postMethod === 'nip07' }).then(async (tab) => {
-      const template = await load('noteTemplate', 'v1');
-      note = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');
-      tabId = tab.tabId;
-      tabUrl = tab.url;
-    });
+    const template = await load('noteTemplate', 'v1');
+    const href = new URL(location.href);
+
+    if (href.searchParams.has('t')) {
+      const title = href.searchParams.get('t') ?? '';
+      tabUrl = href.searchParams.get('u') ?? '';
+      note = template.replace('{title}', title).replace('{url}', tabUrl);
+    } else {
+      await connectToActiveTab({ inject: postMethod === 'nip07' }).then(async (tab) => {
+        note = template.replace('{title}', tab.title ?? '').replace('{url}', tab.url ?? '');
+        tabId = tab.tabId;
+        tabUrl = tab.url;
+      });
+    }
   }
 </script>
 
@@ -62,6 +66,8 @@
       disabled={sent}
       label="Share on Nostr"
       style="width: 100%; resize: vertical;"
+      input$rows={7}
+      input$autofocus
       on:keydown={onKeydown}
     />
     <Button

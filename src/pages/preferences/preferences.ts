@@ -103,6 +103,11 @@ export async function preferences() {
             noteTemplate: get(noteTemplate),
             enableContextMenu: get(enableContextMenu),
           });
+          const packet: Packet = {
+            ext: 'share-on-nostr',
+            kind: 'updatePreferences',
+          };
+          chrome.runtime.sendMessage(packet);
           return 'success';
         } else {
           return 'validation-error';

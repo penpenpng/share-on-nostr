@@ -3,6 +3,8 @@
   import Button, { Label as ButtonLabel } from '@smui/button';
   import Textfield from '@smui/textfield';
   import HelperText from '@smui/textfield/helper-text';
+  import Checkbox from '@smui/checkbox';
+  import FormField from '@smui/form-field';
   import RadioGrid from '../../lib/RadioGrid.svelte';
   import Snackbar, { ISnackbar } from '../../lib/Snackbar.svelte';
   import Caption from '../../lib/Caption.svelte';
@@ -17,6 +19,7 @@
     nsec,
     relayUrls,
     intentUrl,
+    enableContextMenu,
     errors,
     useDefaultNoteTemplate,
     save,
@@ -100,6 +103,18 @@
     <HelperText slot="helper" validationMsg={true}>{$errors.intentUrl}</HelperText>
   </Textfield>
 </RadioGrid>
+
+<h3>Context Menu</h3>
+<Caption>
+  Allows to access Share on Nostr from context menu. Note that it is not available in NIP-07 mode.
+</Caption>
+<div>
+  <FormField>
+    <Checkbox bind:checked={$enableContextMenu} disabled={$postMethod === NostrPostMethods.nip07} />
+    <span slot="label">Enable context menu</span>
+  </FormField>
+</div>
+
 <Button style="width: 100%; margin-top: 2em;" variant="unelevated" on:click={tryToSave}>
   <ButtonLabel>Save</ButtonLabel>
 </Button>
