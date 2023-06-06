@@ -19,10 +19,6 @@ async function shareOnNostr(message: string, url: string) {
   const writableRelays = Object.entries(relays)
     .filter(([, { write }]) => write)
     .map(([url]) => url);
-  if (writableRelays.length <= 0) {
-    console.warn('No writable relays.');
-    return;
-  }
 
   const packet: Packet = {
     ext: 'share-on-nostr',
@@ -30,6 +26,11 @@ async function shareOnNostr(message: string, url: string) {
     relays: writableRelays,
   };
   window.postMessage(packet);
+
+  if (writableRelays.length <= 0) {
+    console.warn('No writable relays.');
+    return;
+  }
 
   const event = JSON.stringify([
     'EVENT',

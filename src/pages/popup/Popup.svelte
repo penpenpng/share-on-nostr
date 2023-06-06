@@ -82,7 +82,9 @@
           </div>
         {/each}
         {#if noRelay}
-          <div>No Relays</div>
+          <span style="color: red;">
+            No writable relays. Check config of your NIP-07 extension.
+          </span>
         {/if}
       </div>
     {/if}
