@@ -23,14 +23,21 @@ export async function share(params: ShareParams) {
 }
 
 async function shareByNip07({ tabId, text, url }: ShareParams) {
-  const packet: Packet = {
+  onMessageFromContentScript(
+    'signed',
+    ({ event }) => {
+      sendEvent(event, nip07relays);
+    },
+    { once: true },
+  );
+
+  sendToBackgroundScript({
     ext: 'share-on-nostr',
-    kind: 'share',
+    kind: 'sign',
     tabId,
     text,
     url,
-  };
-  await chrome.runtime.sendMessage(packet);
+  });
 }
 
 async function shareByNsec({ text, url }: ShareParams) {
@@ -49,6 +56,10 @@ async function shareByNsec({ text, url }: ShareParams) {
     ),
   ]);
 
+  sendEvent(event, relays);
+}
+
+function sendEvent(event: string, relays: string[]) {
   for (const url of relays) {
     const ws = new WebSocket(url);
     ws.addEventListener('open', () => {
@@ -78,23 +89,21 @@ export async function shareByExternalApp({ text, url }: ShareParams) {
 interface OnReceiveRelaysHandler {
   (relays: string[]): void;
 }
+let nip07relays: string[] = [];
 let onReceiveRelaysHandler: OnReceiveRelaysHandler = () => {};
 export async function onReceivedRelays(callback: OnReceiveRelaysHandler) {
   const postMethod = await load('postMethod', 'v1');
 
-  if (postMethod === 'nip07') {
-    chrome.runtime.onMessage.addListener((packet: Packet) => {
-      if (packet.ext !== 'share-on-nostr') {
-        return;
-      }
-
-      if (packet.kind === 'relays') {
+  switch (postMethod) {
+    case 'nip07':
+      onMessageFromContentScript('relays', (packet) => {
+        nip07relays = packet.relays;
         callback(packet.relays);
-      }
-    });
-  }
-  if (postMethod === 'nsec') {
-    onReceiveRelaysHandler = callback;
+      });
+      break;
+    case 'nsec':
+      onReceiveRelaysHandler = callback;
+      break;
   }
 }
 
@@ -103,20 +112,31 @@ interface OnReceivedPostResultHandler {
 }
 let onReceivedPostResultHandler: OnReceivedPostResultHandler = () => {};
 export async function onReceivedPostResult(callback: OnReceivedPostResultHandler) {
-  const postMethod = await load('postMethod', 'v1');
+  onReceivedPostResultHandler = callback;
+}
 
-  if (postMethod === 'nip07') {
-    chrome.runtime.onMessage.addListener((packet: Packet) => {
-      if (packet.ext !== 'share-on-nostr') {
-        return;
-      }
+function onMessageFromContentScript<K extends Packet['kind']>(
+  kind: K,
+  callback: (packet: Packet & { kind: K }) => void,
+  options?: { once?: boolean },
+) {
+  const listener = (packet: Packet) => {
+    if (packet.ext !== 'share-on-nostr') {
+      return;
+    }
 
-      if (packet.kind === 'result') {
-        callback(packet);
+    if (packet.kind === kind) {
+      callback(packet as Packet & { kind: K });
+
+      if (options?.once) {
+        chrome.runtime.onMessage.removeListener(listener);
       }
-    });
-  }
-  if (postMethod === 'nsec') {
-    onReceivedPostResultHandler = callback;
-  }
+    }
+  };
+
+  chrome.runtime.onMessage.addListener(listener);
+}
+
+async function sendToBackgroundScript(packet: Packet) {
+  await chrome.runtime.sendMessage(packet);
 }

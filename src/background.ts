@@ -1,15 +1,37 @@
-chrome.runtime.onMessage.addListener((packet: Packet) => {
-  if (packet.ext !== 'share-on-nostr') {
-    return;
-  }
-
-  if (packet.kind === 'share') {
-    chrome.tabs.sendMessage(packet.tabId, packet);
-  }
-  if (packet.kind === 'updatePreferences') {
-    resetContextMenu();
-  }
+onMessage('updatePreferences', () => {
+  resetContextMenu();
 });
+
+passToContentScript(['sign']);
+
+function passToContentScript(kinds: Packet['kind'][]) {
+  chrome.runtime.onMessage.addListener((packet: Packet) => {
+    if (packet.ext !== 'share-on-nostr') {
+      return;
+    }
+
+    if (kinds.includes(packet.kind) && 'tabId' in packet) {
+      chrome.tabs.sendMessage(packet.tabId, packet);
+    }
+  });
+}
+
+function onMessage<K extends Packet['kind']>(
+  kind: K,
+  callback: (packet: Packet & { kind: K }) => void,
+) {
+  const listener = (packet: Packet) => {
+    if (packet.ext !== 'share-on-nostr') {
+      return;
+    }
+
+    if (packet.kind === kind) {
+      callback(packet as Packet & { kind: K });
+    }
+  };
+
+  chrome.runtime.onMessage.addListener(listener);
+}
 
 const contextMenuId = 'share-on-nostr';
 

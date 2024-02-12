@@ -5,7 +5,6 @@
   import { load } from '../../lib/store';
   import { connectToActiveTab } from './connection';
   import { share, onReceivedPostResult, onReceivedRelays } from './share';
-  import { tick } from 'svelte';
 
   let note = '';
   let tabId = 0;

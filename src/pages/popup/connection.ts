@@ -13,6 +13,7 @@ export async function connectToActiveTab(params: { inject: boolean }): Promise<{
   const { id: tabId = 0, url = '', title = '' } = tab;
 
   if (params.inject) {
+    // Content Script
     chrome.scripting.executeScript({
       target: { tabId },
       func: () => {
@@ -22,26 +23,31 @@ export async function connectToActiveTab(params: { inject: boolean }): Promise<{
         window.__shareOnNostr__loaded = true;
 
         injectResourceScript('js/share-on-nostr.js');
+        passToBackgroundAndPages(['relays', 'signed']);
+        passToClient(['sign']);
 
-        window.addEventListener('message', async ({ data }: MessageEvent<Packet>) => {
-          if (data.ext !== 'share-on-nostr') {
-            return;
-          }
+        function passToBackgroundAndPages(kinds: Packet['kind'][]) {
+          window.addEventListener('message', async ({ data }: MessageEvent<Packet>) => {
+            if (data.ext !== 'share-on-nostr') {
+              return;
+            }
 
-          if (data.kind === 'relays' || data.kind === 'result') {
-            chrome.runtime.sendMessage(data);
-          }
-        });
-        chrome.runtime.onMessage.addListener((packet: Packet) => {
-          if (packet.ext !== 'share-on-nostr') {
-            return;
-          }
+            if (kinds.includes(data.kind)) {
+              chrome.runtime.sendMessage(data);
+            }
+          });
+        }
+        function passToClient(kinds: Packet['kind'][]) {
+          chrome.runtime.onMessage.addListener((packet: Packet) => {
+            if (packet.ext !== 'share-on-nostr') {
+              return;
+            }
 
-          if (packet.kind === 'share') {
-            window.postMessage(packet);
-          }
-        });
-
+            if (kinds.includes(packet.kind)) {
+              window.postMessage(packet);
+            }
+          });
+        }
         function injectResourceScript(path: string) {
           const script = document.createElement('script');
           script.setAttribute('async', 'false');

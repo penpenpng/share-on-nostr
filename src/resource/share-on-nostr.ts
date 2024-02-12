@@ -1,11 +1,5 @@
-window.addEventListener('message', async ({ data }: MessageEvent<Packet>) => {
-  if (data.ext !== 'share-on-nostr') {
-    return;
-  }
-
-  if (data.kind === 'share') {
-    shareOnNostr(data.text, data.url);
-  }
+onMessageFromContentScript('sign', (packet) => {
+  shareOnNostr(packet.text, packet.url);
 });
 
 async function shareOnNostr(message: string, url: string) {
@@ -32,42 +26,20 @@ async function shareOnNostr(message: string, url: string) {
     return;
   }
 
-  const event = JSON.stringify([
-    'EVENT',
-    await nostr.signEvent({
-      kind: 1,
-      tags: [['r', url]],
-      content: message,
-      created_at: Math.floor(new Date().getTime() / 1000),
-    }),
-  ]);
-
-  for (const url of writableRelays) {
-    const ws = new WebSocket(url);
-    ws.addEventListener('open', () => {
-      ws.send(event);
-    });
-    ws.addEventListener('error', () => {
-      const packet: Packet = {
-        ext: 'share-on-nostr',
-        kind: 'result',
-        url,
-        success: false,
-      };
-      window.postMessage(packet);
-    });
-    ws.addEventListener('message', ({ data }) => {
-      const [ok] = JSON.parse(data);
-      const packet: Packet = {
-        ext: 'share-on-nostr',
-        kind: 'result',
-        url,
-        success: ok === 'OK',
-      };
-      window.postMessage(packet);
-      ws.close();
-    });
-  }
+  const signed: Packet = {
+    ext: 'share-on-nostr',
+    kind: 'signed',
+    event: JSON.stringify([
+      'EVENT',
+      await nostr.signEvent({
+        kind: 1,
+        tags: [['r', url]],
+        content: message,
+        created_at: Math.floor(new Date().getTime() / 1000),
+      }),
+    ]),
+  };
+  window.postMessage(signed);
 }
 
 interface UnsignedEvent {
@@ -104,4 +76,19 @@ interface Nip07 {
 
 interface Window {
   nostr?: Nip07;
+}
+
+function onMessageFromContentScript<K extends Packet['kind']>(
+  kind: K,
+  callback: (packet: Packet & { kind: K }) => void,
+) {
+  window.addEventListener('message', async ({ data }: MessageEvent<Packet>) => {
+    if (data.ext !== 'share-on-nostr') {
+      return;
+    }
+
+    if (data.kind === kind) {
+      callback(data as Packet & { kind: K });
+    }
+  });
 }
